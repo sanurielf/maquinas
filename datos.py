@@ -24,9 +24,9 @@ def cargar_datos(caso):
         datos['lr'] = 0.0322
         datos['lm'] = 2.042
         datos['H'] =  0.5
-        datos['pp'] = 1
+        datos['pp'] = 3
         datos['frec'] = 60
-        datos['tm'] = 1
+        datos['tm'] = 0.8
         return datos
 
     if caso=='krauze_hidro':

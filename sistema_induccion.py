@@ -19,11 +19,12 @@ from datos import cargar_datos
 
 class Maquina_Induccion(object):
 
-    def __init__(self, datos):
+    def __init__(self, datos, *args, **kwargs):
 
         self.eventos = []
         self.nombres = {'V': ('V_d', 'V_q', 'V_0', 'V_f'),
                         'I': ('I_d', 'I_q', 'I_0', 'I_f', 'I_s', 'I_t')}
+        
         self.Vm = np.ones(6, dtype=float)
         self.V = np.array([0, 1.0, 0, 0, 0, 0], dtype=float)
         self.ws = 2*np.pi*datos['frec']
@@ -39,7 +40,7 @@ class Maquina_Induccion(object):
         lss = ls + lm
         lrr = lr + lm
 
-        self.R = np.diag([rs, rs, rs, rr, rr, rr])
+        self.R = np.diag([rs]*3 + [rr]*3)
         
         self.L = np.array([ [lss,    0,   0,  lm,   0, 0], 
                             [0,    lss,   0,   0,  lm, 0],
@@ -53,7 +54,18 @@ class Maquina_Induccion(object):
         self.pp = datos['pp']
         self.tm = datos['tm']
 
-
+        ref = kwargs.get('ref', 'sinc')
+        if ref == 'sinc':
+            # Referencia síncrona
+            self.theta = "0"
+            self.wref = "self.ws"
+        elif ref == 'est':
+            # Referencia estacionaria
+            self.theta = "self.ws*t"
+            self.wref = "0"
+        elif ref == 'rot':
+            self.theta = "self.ws*t - x[7]"
+            self.wref = "x[6]"
 
     def aplicar_evento(self, aplicar,evento):
 
@@ -185,10 +197,10 @@ class Maquina_Induccion(object):
         R = self.R
         ws = self.ws
         dx = self.dx
-        #ipdb.set_trace()
-        # Calculo de theta
-        theta = 0#ws*t - x[7]
-        wref = ws
+
+        # Calculo de theta de acuerdo a la referenc
+        theta = eval(self.theta)
+        wref = eval(self.wref)
 
         # Se calculan corrientes        
         self.I = np.dot(self.Linv, x[:6])
@@ -210,8 +222,8 @@ def main():
 
     global Volt
 
-    dat = cargar_datos('carlos')
-    maquina = Maquina_Induccion(dat)
+    dat = cargar_datos('krause_motor')
+    maquina = Maquina_Induccion(dat, ref='sinc')
 
     enlaces=[0.0]*6
     velocidad = [0]
@@ -222,7 +234,7 @@ def main():
     #          'ti' : 2,
     #          'tf': 2.01}
     #maquina.eventos.append(evento)          
-    maquina.dinamico(1, h=0.0001)
+    maquina.dinamico(5, h=0.0001)
     maquina.graficar_todas()
 if __name__ == '__main__':
     main()

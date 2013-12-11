@@ -5,74 +5,55 @@ Created on Mon Oct 14 11:30:31 2013
 @author: urielsandoval
 """
 from copy import copy
+from cmath import sin, cos
 
-
+#import ipdb
 import numpy as np
 from  numpy.linalg import inv
 from numpy import cos, sin, pi
 from matplotlib import pyplot as plt
-
+from cmath import sin, cos
 
 from rk4 import rk4
 from datos import cargar_datos
 
-Volt = []
-class Maquina_Sincrona(object):
+class Maquina_Induccion(object):
 
     def __init__(self, datos):
 
         self.eventos = []
         self.nombres = {'V': ('V_d', 'V_q', 'V_0', 'V_f'),
                         'I': ('I_d', 'I_q', 'I_0', 'I_f', 'I_s', 'I_t')}
-        self.Vm = np.ones(6)
-        self.V = np.array([0, 0, 0, datos['Vfd'], 0, 0])
+        self.Vm = np.ones(6, dtype=float)
+        self.V = np.array([0, 1.0, 0, 0, 0, 0], dtype=float)
         self.ws = 2*np.pi*datos['frec']
         
         # Se cargan datos y se crean matrices
-        r = datos['r']
-        rf = datos['rf']
         rs = datos['rs']
-        rt = datos['rt']
-        ld = datos['ld']
-        lq = datos['lq']
-        l0 = datos['l0']
-        ll = datos['ll']
-        llfd = datos['llfd']
-        llkd = datos['llkd']
-        llkq = datos['llkq']
-        lmd = ld - ll
-        lmq = lq - ll
-        lf = llfd + lmd
-        ls = llkd + lmd
-        lt = llkq + lmq
+        rr = datos['rr']
 
-        mdf = mds = lmd
-        mqt = lmq
+        lr = datos['lr']
+        ls = datos['ls']
+        lm = datos['lm']
 
-        self.R = np.diag([-r, -r, -r, rf, rs, rt])
-        self.L = np.array([[-ld, 0, 0, mdf, mds, 0], 
-                            [0, -lq, 0, 0, 0, mqt],
-                            [0, 0, -l0, 0, 0, 0],
-                            [-mdf, 0, 0, lf, lmd, 0],
-                            [-mds, 0, 0, lmd, ls, 0],
-                            [0, -mqt, 0, 0, 0, lt]])
+        lss = ls + lm
+        lrr = lr + lm
+
+        self.R = np.diag([rs, rs, rs, rr, rr, rr])
+        
+        self.L = np.array([ [lss,    0,   0,  lm,   0, 0], 
+                            [0,    lss,   0,   0,  lm, 0],
+                            [0,      0,  ls,   0,   0, 0],
+                            [lm,     0,   0, lrr,   0, 0],
+                            [0,     lm,   0,   0, lrr, 0],
+                            [0,      0,   0,   0,   0, lr]], dtype=float)
         self.Linv = inv(self.L)
 
         self.H = datos['H']
         self.pp = datos['pp']
         self.tm = datos['tm']
-        self.VA = 1
-        self.VB = 1
-        self.VC = 1
-
-    def calcula_voltajes(self, theta, Vabc):
-
-        C = 2./3 * np.array([[cos(theta), cos(theta - 2*pi/3), cos(theta + 2*pi/3)],\
-                            [-sin(theta), -sin(theta - 2*pi/3), -sin(theta + 2*pi/3)],\
-                            [0.5, 0.5, 0.5]])
 
 
-        return np.dot(C, Vabc)
 
     def aplicar_evento(self, aplicar,evento):
 
@@ -106,7 +87,7 @@ class Maquina_Sincrona(object):
             ind = (np.abs(t - evento['ti'])).argmin()
             ind2 = (np.abs(t - evento['tf'])).argmin()
 
-            t_eventos[ind].append((True,evento))
+            t_eventos[ind].append((True, evento))
             t_eventos[ind2].append((False, evento))
 
         return t_eventos
@@ -159,13 +140,13 @@ class Maquina_Sincrona(object):
         self.data['w'] *= 120 / (2*np.pi*self.pp)
         self.data['d'] *= 180 / np.pi
 
-        #print self.X[-1,:].tolist()
+        print self.X[-1,:].tolist()
 
 
     def graficar_todas(self):
         plt.close('all')
         f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex='col')
-        ax1.plot(self.t, self.data['w'], linewidth=1, label='$\omega$')
+        ax1.plot(self.t, self.data['w'], linewidth=1, label='$\omega$',)
         ax1.legend(loc=1)
         ax2.plot(self.t, self.data['d'], linewidth=1, label='$\delta$')
         ax2.legend(loc=1)
@@ -198,50 +179,50 @@ class Maquina_Sincrona(object):
         plt.show()
 
     def ecuaciones(self, t, x):
-        global Volt
 
         Vm = self.Vm
         V = self.V
         R = self.R
         ws = self.ws
         dx = self.dx
+        #ipdb.set_trace()
+        # Calculo de theta
+        theta = 0#ws*t - x[7]
+        wref = ws
 
         # Se calculan corrientes        
         self.I = np.dot(self.Linv, x[:6])
         # Se calcula para eléctrico
-        self.te = x[0] * self.I[1] - x[1] * self.I[0]
+        self.te = (x[0] * self.I[1] - x[1] * self.I[0])
         # Inductancias de voltajes rotacionales
-        G = np.array([x[1], -x[0], 0, 0, 0, 0])
-
-        V[0] = Vm[0] * np.sin(x[7]) #Vdq0[0] #
-        #print V[0]
-        V[1] = Vm[1] * np.cos(x[7]) #Vdq0[1] #
+        G = np.array([-wref*x[1], wref*x[0], 0, -(wref-x[6])*x[4], (wref-x[6])*x[3], 0])/ws
+        # Se calcula el voltaje
+        V[0] = Vm[0] * np.sin(theta) 
+        V[1] = Vm[1] * np.cos(theta)
         V[2] = 0
 
-        dx[0:6] = (V - np.dot(R, self.I) + (x[6]/ws) * G) * ws
-        dx[6] = ws *(self.tm - self.te) / (2*self.H)
-        dx[7] = x[6] - ws
+        dx[0:6] = (V - np.dot(R, self.I) - G) * ws
+        dx[6] = ws *(self.te - self.tm) / (2*self.H)
+        dx[7] = x[6]
 
         return dx
 def main():
 
     global Volt
 
-    dat = cargar_datos('krauze_hidro')
-    maquina = Maquina_Sincrona(dat)
+    dat = cargar_datos('carlos')
+    maquina = Maquina_Induccion(dat)
 
-    #enlaces=[.9523, -.3104, 0, 1.4924, 0, 0]
-    enlaces = [1.0002, -.0390, 0, 8.3698, 3.3725, -.0292]
-    velocidad = [2*np.pi*60]
-    angulo = [0.3141]
-    angulo = [.0014]    
-    maquina.x0 = np.array(enlaces+velocidad+angulo)
-
+    enlaces=[0.0]*6
+    velocidad = [0]
+    angulo = [0]
+    maquina.x0 = np.array(enlaces+velocidad+angulo, dtype=float)
+    print maquina.x0
     #evento = {'tipo': 'falla_3f',
     #          'ti' : 2,
     #          'tf': 2.01}
     #maquina.eventos.append(evento)          
-    maquina.dinamico(10)
+    maquina.dinamico(1, h=0.0001)
     maquina.graficar_todas()
 if __name__ == '__main__':
     main()

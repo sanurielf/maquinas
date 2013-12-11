@@ -28,7 +28,7 @@ def krauze(simulacion = 1):
         maquina.eventos.append({'tipo':'falla_3f', 'ti': .1, 'tf':.56})
         
         maquina.dinamico(1)
-        #maquina.graficar_todas()
+        maquina.graficar_todas()
 
 def main():
     krauze(2)

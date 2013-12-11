@@ -1,6 +1,34 @@
 
 def cargar_datos(caso):
 
+    if caso == 'carlos':
+
+        datos = {}
+        datos['rs'] = 0.01965
+        datos['rr'] = 0.01909
+        datos['ls'] = 0.0397
+        datos['lr'] = 0.0397
+        datos['lm'] = 1.354
+        datos['H'] =  0.09526*2
+        datos['pp'] = 2
+        datos['frec'] = 60
+        datos['tm'] = 1
+        return datos
+    
+    if caso == 'krause_motor':
+
+        datos = {}
+        datos['rs'] = 0.0453
+        datos['rr'] = 0.0222
+        datos['ls'] = 0.0775
+        datos['lr'] = 0.0322
+        datos['lm'] = 2.042
+        datos['H'] =  0.5
+        datos['pp'] = 1
+        datos['frec'] = 60
+        datos['tm'] = 1
+        return datos
+
     if caso=='krauze_hidro':
 
         # Parametros resistencias
@@ -20,7 +48,7 @@ def cargar_datos(caso):
 
         H = 7.5
         pp = 64
-        tm = 0.85
+        tm = 0.0
         Vfd = 0.00089936
         frec = 60
 

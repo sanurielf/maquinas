@@ -64,6 +64,7 @@ class Maquina_Induccion(object):
             self.theta = "self.ws*t"
             self.wref = "0"
         elif ref == 'rot':
+            # Referencia en el rotor
             self.theta = "self.ws*t - x[7]"
             self.wref = "x[6]"
 
@@ -222,7 +223,7 @@ def main():
 
     global Volt
 
-    dat = cargar_datos('krause_motor')
+    dat = cargar_datos('carlos')
     maquina = Maquina_Induccion(dat, ref='sinc')
 
     enlaces=[0.0]*6
@@ -234,7 +235,7 @@ def main():
     #          'ti' : 2,
     #          'tf': 2.01}
     #maquina.eventos.append(evento)          
-    maquina.dinamico(5, h=0.0001)
+    maquina.dinamico(5)
     maquina.graficar_todas()
 if __name__ == '__main__':
     main()

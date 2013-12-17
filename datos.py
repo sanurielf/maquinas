@@ -15,7 +15,7 @@ def cargar_datos(caso):
         datos['tm'] = 1
         return datos
     
-    if caso == 'krause_motor':
+    elif caso == 'krause_motor':
 
         datos = {}
         datos['rs'] = 0.0453
@@ -29,7 +29,23 @@ def cargar_datos(caso):
         datos['tm'] = 0.8
         return datos
 
-    if caso=='krauze_hidro':
+
+    elif caso == 'riaz':
+
+        datos = {'rs': 0.01,
+                 'rr': 0.02,
+                 'ls': 0.1,
+                 'lr': 0.1,
+                 'lm': 4.5,
+                 'H': 0.3,
+                 'frec': 60,
+                 'pp': 2,
+                 'tm':0}
+        return datos
+
+
+
+    elif caso=='krauze_hidro':
 
         # Parametros resistencias
         r = 0.0019

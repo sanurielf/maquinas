@@ -8,9 +8,9 @@ from copy import copy
 
 
 import numpy as np
-from  numpy.linalg import inv
-from numpy import cos, sin, pi, sqrt
+from cmath import cos, sin, pi, sqrt
 from matplotlib import pyplot as plt
+from cvxopt import matrix
 
 
 from rk4 import rk4
@@ -22,8 +22,8 @@ T1 = 2./3 * np.array([[1, -0.5, -0.5],
                       [0, sqrt(3)/2, -sqrt(3)/2]])
 
 defase = 2*pi/3
-raiz1_2 = 1/sqrt(2)
-raiz2_3 = sqrt(2./3)
+raiz1_2 = 1/sqrt(2).real
+raiz2_3 = sqrt(2./3).real
 
 class Maquina(object):
 
@@ -86,24 +86,21 @@ class Maquina(object):
 
     def transformada_park(self, theta, Vabc):
 
-        C = raiz2_3 * np.array([[cos(theta), cos(theta - defase), cos(theta + defase)],\
-                            [-sin(theta), -sin(theta - defase), -sin(theta + defase)],\
-                            [raiz1_2, raiz1_2, raiz1_2]])
+        C =  raiz2_3 * matrix([[cos(theta).real, cos(theta - defase).real, cos(theta + defase).real],\
+                             [-sin(theta).real, -sin(theta - defase).real, -sin(theta + defase).real],\
+                             [raiz1_2, raiz1_2, raiz1_2]])
 
 
-        return np.dot(C, Vabc)
+        return C.T * Vabc
 
     def aplicar_evento(self, aplicar,evento):
 
         if aplicar:
             print 'Se apica evento'
             if evento['tipo'] == 'falla_3f':
-                self.Vm1 = copy(self.Vm)
                 self.VA = 0
                 self.VB = 0
                 self.VC = 0
-                self.Vm[0] = 0
-                self.Vm[1] = 0
             elif evento['tipo'] == 'mod_par':
                 self.tm = evento['valor']
 
@@ -113,8 +110,6 @@ class Maquina(object):
                 self.VA = 1
                 self.VB = 1
                 self.VC = 1
-                self.Vm[0] = self.Vm1[0]
-                self.Vm[1] = self.Vm1[0]
             elif evento['tipo'] == 'mod_par':
                 pass
 
@@ -135,24 +130,24 @@ class Maquina(object):
         h = kwargs.get('h', 0.001)
         N = int((tf) / h)
         self.t = np.linspace(0, tf, N)
-        ceros = np.zeros(N)
-        ceros_n = np.zeros((N, 8))
-        ceros_n_2 = np.zeros((N, 6))
+        ceros = matrix(0.0, (N,1))
+        ceros_n = matrix(0.0, (N, 8))
+        ceros_n_2 = matrix(0.0, (N, 6))
 
 
         t_eventos = self.crea_tiempo_eventos(self.t)
-        self.X = ceros_n.copy()
+        self.X = copy(ceros_n)
 
-        self.data = {'V': ceros_n_2.copy(),
-                    'I': ceros_n_2.copy(),
-                    'Te': ceros.copy(),
-                    'Tm': ceros.copy(),
-                    'w': ceros.copy(),
-                    'd': ceros.copy()}
+        self.data = {'V': copy(ceros_n_2),
+                    'I':  copy(ceros_n_2),
+                    'Te': copy(ceros),
+                    'Tm': copy(ceros),
+                    'w':  copy(ceros),
+                    'd':  copy(ceros)}
 
 
 
-        self.dx = np.zeros(8)
+        self.dx = matrix(0.0, (1,8))
 
         self.X[0, :] = self.x0
         self.data['w'][0] = self.x0[6] #* 120 / (2*np.pi*self.pp)
@@ -171,10 +166,10 @@ class Maquina(object):
 
             self.X[p, :] = rk4(self.ecuaciones, self.X[p-1, :], self.t[p], h)
             # Se almacenan variables
-            self.data['V'][p] = self.V
+            self.data['V'][p, :] = self.V.T
             self.data['w'][p] = self.X[p, 6]
             self.data['d'][p] = self.X[p, 7]
-            self.data['I'][p] = self.I
+            self.data['I'][p, :] = self.I.T
             self.data['Te'][p] = self.te
             self.data['Tm'][p] = self.tm
 

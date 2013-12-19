@@ -21,6 +21,7 @@ class Maquina_Induccion(Maquina):
     def __init__(self, datos, *args, **kwargs):
         super(Maquina_Induccion, self).__init__(datos)
 
+        self.eventos = []
         self.nombres = {'V': ('V_d', 'V_q', 'V_0'),
                         'I': ('I_d', 'I_q', 'I_0')}
         self.V = matrix(0.0, (6, 1))
@@ -113,17 +114,16 @@ def main():
 
     maquina.x0 = np.zeros(8, dtype=float)
 
-    maquina.eventos.append({'tipo': 'mod_par',
-                           'ti': 1.7,
-                           'tf': 1.7,
-                           'valor': 2})
-    # maquina.eventos.append({'tipo': 'falla_3f',
+    # maquina.eventos.append({'tipo': 'mod_par',
     #                        'ti': 1.7,
-    #                        'tf': 1.8,
-    #                        'valor': 1})
+    #                        'tf': 1.7,
+    #                        'valor': 2})
+    maquina.eventos.append({'tipo': 'falla_3f',
+                           'ti': 1,
+                           'tf': 1.1,
+                           'valor': 0})
 
-    maquina.dinamico(5)
-    print maquina.X[-1, :]  
+    maquina.dinamico(2)
 
     maquina.graficar_todas()
 if __name__ == '__main__':

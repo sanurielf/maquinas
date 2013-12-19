@@ -69,6 +69,9 @@ class Maquina(object):
         # self.H = datos['H']
         # self.pp = datos['pp']
         # self.tm = datos['tm']
+        self.eventos = []
+        self.ws = 2*np.pi*datos['frec']
+
         self.VA = 1
         self.VB = 1
         self.VC = 1

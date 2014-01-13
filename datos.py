@@ -12,7 +12,7 @@ def cargar_datos(caso):
         datos['H'] =  0.09526*2
         datos['pp'] = 2
         datos['frec'] = 60
-        datos['tm'] = 0
+        datos['tm'] = 1
         return datos
     
     elif caso == 'krause_motor':

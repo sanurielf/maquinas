@@ -109,7 +109,7 @@ class Maquina_Induccion(Maquina):
 def main():
 
 
-    dat = cargar_datos('riaz')
+    dat = cargar_datos('carlos')
     maquina = Maquina_Induccion(dat, ref='est')
 
     maquina.x0 = np.zeros(8, dtype=float)

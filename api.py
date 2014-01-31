@@ -1,0 +1,3 @@
+from sistema_induccion import Maquina_Induccion
+from sistema_sincrona import Maquina_Sincrona
+from datos import cargar_datos
